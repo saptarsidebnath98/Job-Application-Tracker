@@ -1,0 +1,17 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Job application tracker backend",
+  "license": "ISC",
+  "author": "Saptarsi Debnath",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "\t",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
