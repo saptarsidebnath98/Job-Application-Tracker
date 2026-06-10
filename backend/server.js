@@ -35,21 +35,42 @@ app.get("/jobs", (req, res) => {
   res.json(jobs);
 });
 
+const validateJob = (body) => {
+  const { company, position, status } = body;
+  const validStatus = ["Applied", "Interview Scheduled", "Rejected"];
+
+  if (!company?.trim()) {
+    return "Company is required";
+  }
+
+  if (!position?.trim()) {
+    return "Position is required";
+  }
+
+  if (!status?.trim()) {
+    return "Status is required";
+  }
+
+  if (!validStatus.includes(status.trim())) {
+    return "Invalid status";
+  }
+
+  return null;
+};
+
 app.post("/jobs", (req, res) => {
   try {
-    const { company, position, status } = req.body;
-    const validStatus = ["Applied","Interview Scheduled", "Rejected"];
+    const error = validateJob(req.body);
 
-    if (!company?.trim() || !position?.trim() || !status?.trim() || !validStatus.includes(status?.trim())) {
+    if (error) {
       return res.status(400).json({
-        message: "All fields are required with proper values",
+        message: error,
       });
     }
 
-      const newJob = { ...req.body, id: crypto.randomUUID() };
-      jobs.push(newJob);
-      return res.status(201).json(newJob);
-
+    const newJob = { ...req.body, id: crypto.randomUUID() };
+    jobs.push(newJob);
+    return res.status(201).json(newJob);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -73,6 +94,34 @@ app.delete("/jobs/:id", (req, res) => {
     return res.status(200).json({
       message: "Job deleted successfully!",
     });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+});
+
+app.put("/jobs/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    const index = jobs.findIndex((job) => job.id === id);
+
+    if (index === -1) {
+      return res.status(404).json({
+        message: "Job Not Found!",
+      });
+    }
+
+    const error = validateJob(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        message: error,
+      });
+    }
+
+    jobs[index] = { ...jobs[index], ...req.body };
+    return res.status(200).json(jobs[index]);
   } catch (error) {
     res.status(500).json({
       message: "Internal Server Error",

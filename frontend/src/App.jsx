@@ -11,6 +11,8 @@ function App() {
  const [position, setPosition] = useState("");
  const [status, setStatus] = useState("Applied");
 
+ const [editableId, setEditableId] = useState(null);
+
  const handleFieldChange = (e, setField) => {
     setField(e.target.value);
  }
@@ -62,6 +64,57 @@ function App() {
     }
   }
 
+  const handleEdit = (id) =>{
+    setEditableId(id)
+    const editableJob = jobs.find(job => job.id === id);
+    const {company, position, status} = editableJob;
+    setCompany(company);
+    setPosition(position);
+    setStatus(status)
+    console.log(editableJob);
+  };
+
+  const handleUpdate = async () => {
+    if (company && position && status) {
+      try {
+        const response = await fetch(`http://localhost:5000/jobs/${editableId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            company,
+            position,
+            status
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`Response status: ${response.status}`);
+        }
+
+        const updatedJob = await response.json();
+        setJobs((prevJobs) => {
+          return prevJobs.map((job) => {
+            if(job.id === editableId){
+              return {...job, ...updatedJob}
+            }else{
+              return job
+            }
+          })
+        });
+        setEditableId(null);
+        setCompany("");
+        setPosition("");
+        setStatus("Applied");
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } 
+    }
+  }
+
+
+
  
   
   useEffect(() => {
@@ -107,7 +160,7 @@ function App() {
           <option value="Interview Scheduled">Interview Scheduled</option>
           <option value="Rejected">Rejected</option>
         </select>
-          <button onClick={handleSubmit}>submit</button>
+        {editableId ? <button onClick={handleUpdate}>Update</button> : <button onClick={handleSubmit}>submit</button>}
       </section>
         <section>
           <ul>
@@ -117,6 +170,7 @@ function App() {
                   <span>{job.company}</span>
                   <span>{job.position}</span>
                   <span>{job.status}</span>
+                  <button onClick={() => handleEdit(job.id)}>Edit</button>
                   <button onClick={() => handleDelete(job.id)}>Delete</button>
                 </li>
               )
