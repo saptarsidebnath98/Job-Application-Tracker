@@ -45,6 +45,23 @@ function App() {
     }
   }
 
+  const handleDelete = async(id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/jobs/${id}`, {
+        method : "DELETE"
+      });
+
+      if(!response.ok){
+        throw new Error(`Response status: ${response.status}`);
+      }
+
+      setJobs((prevJobs) => prevJobs.filter((job) => job.id !== id));
+    } catch (err) {
+      console.error(err.message);
+        setError(err.message);
+    }
+  }
+
  
   
   useEffect(() => {
@@ -100,6 +117,7 @@ function App() {
                   <span>{job.company}</span>
                   <span>{job.position}</span>
                   <span>{job.status}</span>
+                  <button onClick={() => handleDelete(job.id)}>Delete</button>
                 </li>
               )
             })}

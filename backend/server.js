@@ -10,21 +10,21 @@ app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-const jobs = [
+let jobs = [
   {
-    id: 1,
+    id: "1",
     company: "Google",
     position: "Frontend Developer",
     status: "Applied",
   },
   {
-    id: 2,
+    id: "2",
     company: "Microsoft",
     position: "React Developer",
     status: "Interview Scheduled",
   },
   {
-    id: 3,
+    id: "3",
     company: "Amazon",
     position: "Frontend Engineer",
     status: "Rejected",
@@ -53,6 +53,29 @@ app.post("/jobs", (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: error.message,
+    });
+  }
+});
+
+app.delete("/jobs/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const initialLength = jobs.length;
+
+    jobs = jobs.filter((job) => job.id !== id);
+    if (jobs.length === initialLength) {
+      return res.status(404).json({
+        message: "Job Not Found!",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Job deleted successfully!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 });
