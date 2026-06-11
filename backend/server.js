@@ -1,3 +1,10 @@
+const VALID_STATUSES = [
+  "Applied",
+  "Interview Scheduled",
+  "Rejected"
+];
+
+const db = require("./db");
 const express = require("express");
 const cors = require("cors");
 
@@ -6,38 +13,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+
+(async () => {
+  try {
+    await db.query("SELECT 1");
+    console.log("Database Connected ✅");
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
 app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-let jobs = [
-  {
-    id: "1",
-    company: "Google",
-    position: "Frontend Developer",
-    status: "Applied",
-  },
-  {
-    id: "2",
-    company: "Microsoft",
-    position: "React Developer",
-    status: "Interview Scheduled",
-  },
-  {
-    id: "3",
-    company: "Amazon",
-    position: "Frontend Engineer",
-    status: "Rejected",
-  },
-];
 
-app.get("/jobs", (req, res) => {
-  res.json(jobs);
+app.get("/jobs", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM jobs");
+    return res.json(rows)
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    })
+  }
 });
 
 const validateJob = (body) => {
   const { company, position, status } = body;
-  const validStatus = ["Applied", "Interview Scheduled", "Rejected"];
 
   if (!company?.trim()) {
     return "Company is required";
@@ -51,14 +55,14 @@ const validateJob = (body) => {
     return "Status is required";
   }
 
-  if (!validStatus.includes(status.trim())) {
+  if (!VALID_STATUSES.includes(status.trim())) {
     return "Invalid status";
   }
 
   return null;
 };
 
-app.post("/jobs", (req, res) => {
+app.post("/jobs", async (req, res) => {
   try {
     const error = validateJob(req.body);
 
@@ -68,9 +72,22 @@ app.post("/jobs", (req, res) => {
       });
     }
 
-    const newJob = { ...req.body, id: crypto.randomUUID() };
-    jobs.push(newJob);
-    return res.status(201).json(newJob);
+    const newJob = {
+  ...req.body,
+  id: crypto.randomUUID()
+};
+
+const { id, company, position, status } = newJob;
+
+await db.query(
+  `
+  INSERT INTO jobs
+  (id, company, position, status)
+  VALUES (?, ?, ?, ?)
+  `,
+  [id, company, position, status]
+);
+return res.status(201).json(newJob);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -78,17 +95,16 @@ app.post("/jobs", (req, res) => {
   }
 });
 
-app.delete("/jobs/:id", (req, res) => {
+app.delete("/jobs/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const initialLength = jobs.length;
+    const [result] = await db.query("DELETE FROM jobs WHERE id = ?", [id]);
 
-    jobs = jobs.filter((job) => job.id !== id);
-    if (jobs.length === initialLength) {
+    if(result.affectedRows === 0){
       return res.status(404).json({
-        message: "Job Not Found!",
-      });
+    message: "Job Not Found!"
+  })
     }
 
     return res.status(200).json({
@@ -96,21 +112,14 @@ app.delete("/jobs/:id", (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Internal Server Error",
+      message: error.message,
     });
   }
 });
 
-app.put("/jobs/:id", (req, res) => {
+app.put("/jobs/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const index = jobs.findIndex((job) => job.id === id);
-
-    if (index === -1) {
-      return res.status(404).json({
-        message: "Job Not Found!",
-      });
-    }
 
     const error = validateJob(req.body);
 
@@ -119,12 +128,23 @@ app.put("/jobs/:id", (req, res) => {
         message: error,
       });
     }
+    const { company, position, status } = req.body;
 
-    jobs[index] = { ...jobs[index], ...req.body };
-    return res.status(200).json(jobs[index]);
+    const [updatedResult] = await db.query(
+      `UPDATE jobs 
+      SET company = ?, position = ?, status = ?
+      WHERE id = ?;`, [company, position, status, id]);
+
+    if(updatedResult.affectedRows === 0){
+      return res.status(404).json({
+    message: "Job Not Found!"
+    })
+    }
+
+    return res.status(200).json({id, ...req.body});
   } catch (error) {
     res.status(500).json({
-      message: "Internal Server Error",
+      message: error.message,
     });
   }
 });
