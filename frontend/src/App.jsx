@@ -13,6 +13,8 @@ function App() {
 
  const [editableId, setEditableId] = useState(null);
 
+ const [searchTerms, setSearchTerms] = useState("");
+
  const handleFieldChange = (e, setField) => {
     setField(e.target.value);
  }
@@ -113,9 +115,15 @@ function App() {
     }
   }
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerms(value);
+  }
 
-
- 
+  const filterJobsBySearch = (jobs, searchTerms) => {
+    const validSearchTerm = searchTerms.toLowerCase().trim();
+    return jobs.filter((job) => job.company.toLowerCase().trim().includes(validSearchTerm))
+  }
   
   useEffect(() => {
     const getData = async (url) =>  {
@@ -148,23 +156,29 @@ function App() {
         <h1>Job Tracker</h1>
       </header>
       <main>
-      <section>
-  
-        <label htmlFor="company">Company:</label>
-        <input type="text" id="company" name="company" value={company} onChange={ (e) => handleFieldChange(e, setCompany)}/>
-        <label htmlFor="position">Position:</label>
-        <input type="text" id="position" name="position" value={position} onChange={ (e) => handleFieldChange(e, setPosition)}/>
-        <label htmlFor="status">Status:</label>
-        <select name="status" id="status" value={status} onChange={ (e) => handleFieldChange(e, setStatus)}>
-          <option value="Applied">Applied</option>
-          <option value="Interview Scheduled">Interview Scheduled</option>
-          <option value="Rejected">Rejected</option>
-        </select>
-        {editableId ? <button onClick={handleUpdate}>Update</button> : <button onClick={handleSubmit}>submit</button>}
-      </section>
         <section>
+
+          <label htmlFor="company">Company:</label>
+          <input type="text" id="company" name="company" placeholder='Ex. Amazon' value={company} onChange={(e) => handleFieldChange(e, setCompany)} />
+          <label htmlFor="position">Position:</label>
+          <input type="text" id="position" name="position" placeholder='Ex. React Developer' value={position} onChange={(e) => handleFieldChange(e, setPosition)} />
+          <label htmlFor="status">Status:</label>
+          <select name="status" id="status" value={status} onChange={(e) => handleFieldChange(e, setStatus)}>
+            <option value="Applied">Applied</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          {editableId ? <button onClick={handleUpdate}>Update</button> : <button onClick={handleSubmit}>submit</button>}
+        </section>
+        <hr />
+        <section>
+          <label htmlFor="searchJobs">Search Jobs : </label>
+          <input type="text" id="searchJobs" placeholder='Search by company name...' value={searchTerms} onChange={handleSearchChange}/>
+        </section>
+        <section>
+          {filterJobsBySearch(jobs, searchTerms).length === 0 && <div>No Jobs Found!</div>}
           <ul>
-            {jobs.map((job) => {
+            {filterJobsBySearch(jobs, searchTerms).map((job) => {
               return (
                 <li key={job.id}>
                   <span>{job.company}</span>
