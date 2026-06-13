@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import './App.css'
+
 
 function App() {
 
@@ -124,6 +124,15 @@ function App() {
     const validSearchTerm = searchTerms.toLowerCase().trim();
     return jobs.filter((job) => job.company.toLowerCase().trim().includes(validSearchTerm))
   }
+
+  const statusObj = jobs.reduce((overallObject, currentVal) => {
+    if(!overallObject[currentVal.status]){
+        overallObject[currentVal.status] = 0;
+    }
+    overallObject[currentVal.status] += 1;
+    return overallObject;
+}, {})
+
   
   useEffect(() => {
     const getData = async (url) =>  {
@@ -190,6 +199,20 @@ function App() {
               )
             })}
           </ul>
+        </section>
+        <hr />
+        <section id="jobs_analytics">
+          <h2>Analytics</h2>
+          <div id='jobs_analytics_cards_container'>
+          <div>Total Jobs : {jobs.length}</div>
+            {Object.entries(statusObj).map((status, index) => {
+              return(
+                <div key={index}>
+                  {status[0]} : {status[1]}
+                </div>
+              )
+            })}
+            </div>
         </section>
       </main>
       <footer>
