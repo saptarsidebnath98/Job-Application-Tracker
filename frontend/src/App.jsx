@@ -14,6 +14,7 @@ function App() {
  const [editableId, setEditableId] = useState(null);
 
  const [searchTerms, setSearchTerms] = useState("");
+ const [currentFilter, setCurrentFilter] = useState("all");
 
  const handleFieldChange = (e, setField) => {
     setField(e.target.value);
@@ -120,7 +121,8 @@ function App() {
     setSearchTerms(value);
   }
 
-  const filterJobsBySearch = (jobs, searchTerms) => {
+
+  const jobsBySearch = (jobs, searchTerms) => {
     const validSearchTerm = searchTerms.toLowerCase().trim();
     return jobs.filter((job) => job.company.toLowerCase().trim().includes(validSearchTerm))
   }
@@ -132,6 +134,26 @@ function App() {
     overallObject[currentVal.status] += 1;
     return overallObject;
 }, {})
+
+  const handleFilterByStatusChange = (e) => {
+    setCurrentFilter(e.target.value);
+  }
+
+  const filterJobsByStatus = (jobs, currentFilter) => {
+   
+      if(currentFilter === "all"){
+        return jobs;
+      }else {
+        return jobs.filter((job) => job.status === currentFilter);
+      }
+ 
+    
+  }
+
+  const filteredJobs = filterJobsByStatus(
+  jobsBySearch(jobs, searchTerms),
+  currentFilter
+);
 
   
   useEffect(() => {
@@ -153,8 +175,9 @@ function App() {
     }
 
     getData('http://localhost:5000/jobs');
-
   }, [])
+
+
 
   if(loading) return <div>Loading...</div>
   if(error) return <div>{error}</div>
@@ -165,7 +188,7 @@ function App() {
         <h1>Job Tracker</h1>
       </header>
       <main>
-        <section>
+        <section id="jobs_form">
 
           <label htmlFor="company">Company:</label>
           <input type="text" id="company" name="company" placeholder='Ex. Amazon' value={company} onChange={(e) => handleFieldChange(e, setCompany)} />
@@ -179,28 +202,39 @@ function App() {
           </select>
           {editableId ? <button onClick={handleUpdate}>Update</button> : <button onClick={handleSubmit}>submit</button>}
         </section>
-        <hr />
-        <section>
+       
+        <section id="jobs_search_filter">
           <label htmlFor="searchJobs">Search Jobs : </label>
           <input type="text" id="searchJobs" placeholder='Search by company name...' value={searchTerms} onChange={handleSearchChange}/>
+          <label htmlFor="filterJobs">Filter jobs by Status : </label>
+          <select name="filterJobs" id="filterJobs" value={currentFilter} onChange={handleFilterByStatusChange}>
+            <option value="all">All</option>
+            <option value="Applied">Applied</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Rejected">Rejected</option>
+          </select>
         </section>
-        <section>
-          {filterJobsBySearch(jobs, searchTerms).length === 0 && <div>No Jobs Found!</div>}
+        <section id="jobs_display">
+          
           <ul>
-            {filterJobsBySearch(jobs, searchTerms).map((job) => {
+            {filteredJobs.length === 0 && <div>No Jobs Found!</div>}
+            {filteredJobs.map((job) => {
               return (
                 <li key={job.id}>
                   <span>{job.company}</span>
                   <span>{job.position}</span>
                   <span>{job.status}</span>
-                  <button onClick={() => handleEdit(job.id)}>Edit</button>
-                  <button onClick={() => handleDelete(job.id)}>Delete</button>
+                  <div class="jobs_cards_buttons_container">
+                    <button onClick={() => handleEdit(job.id)} className='jobs_edit_btn'>Edit</button>
+                    <button onClick={() => handleDelete(job.id)} className='jobs_delete_btn'>Delete</button>
+                  </div>
+                  
                 </li>
               )
             })}
           </ul>
         </section>
-        <hr />
+        
         <section id="jobs_analytics">
           <h2>Analytics</h2>
           <div id='jobs_analytics_cards_container'>
