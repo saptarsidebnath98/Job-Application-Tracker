@@ -26,6 +26,12 @@ h1 {
     padding: 10px;
 }
 
+.error_text{
+    color: red;
+    font-weight: 300;
+    height: 30px;
+}
+
 #register_form button{
     padding: 10px;
     margin: 20px auto;
