@@ -8,7 +8,7 @@ h1 {
 }
 
 /* register page */
-#register_form{
+#register_form, #login_form{
     border: 2px solid #f95959;
     width: 30%;
     margin: 0% auto;
@@ -18,11 +18,11 @@ h1 {
     gap: 10px;
 }
 
-#register_form label{
+#register_form label, #login_form label{
     margin-top: 10px;
 }
 
-#register_form input{
+#register_form input, #login_form input{
     padding: 10px;
 }
 
@@ -32,7 +32,7 @@ h1 {
     height: 30px;
 }
 
-#register_form button{
+#register_form button, #login_form button{
     padding: 10px;
     margin: 20px auto;
     width: 50%;
