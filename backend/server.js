@@ -151,7 +151,7 @@ app.put("/jobs/:id", async (req, res) => {
 });
 
 //register
-const validateUser = (body) => {
+const validateUserForRegister = (body) => {
   const { name, email, password } = body;
 
   if (!name?.trim()) {
@@ -180,7 +180,7 @@ const validateUser = (body) => {
 
 app.post("/register", async (req, res) => {
   try {
-    const error = validateUser(req.body);
+    const error = validateUserForRegister(req.body);
 
     if (error) {
       return res.status(400).json({
@@ -217,6 +217,52 @@ return res.status(201).json({
     });
   }
 
+})
+
+//login
+const validateUserForLogin = (body) => {
+  const {email, password} = body;
+
+  if(!email?.trim()){
+    return "Email is required"
+  }
+
+  if(!password?.trim()){
+    return "Password is required"
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (email && !emailRegex.test(email)) {
+    return "Invalid email format";
+  }
+
+  if(password && password.length < 8){
+    return "Password length must be 8 or above";
+  }
+  return null;
+
+}
+
+app.post("/login",async(req, res) => {
+    try {
+    const error = validateUserForLogin(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        message: error,
+      });
+    }
+    
+    return res.status(200).json({
+      message: "login route working fine"
+    })
+      
+    } catch (error) {
+      return res.status(500).json({
+        message: error.message,
+      })
+    }
 })
 
 app.listen(5000, () => {
