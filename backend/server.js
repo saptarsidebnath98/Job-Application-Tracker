@@ -7,6 +7,7 @@ const VALID_STATUSES = [
 const db = require("./db");
 const express = require("express");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -148,6 +149,75 @@ app.put("/jobs/:id", async (req, res) => {
     });
   }
 });
+
+//register
+const validateUser = (body) => {
+  const { name, email, password } = body;
+
+  if (!name?.trim()) {
+    return "Name is required";
+  }
+
+  if (!email?.trim()) {
+    return "Email is required";
+  }
+
+  if (!password?.trim()) {
+    return "Password is required";
+  }
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (email && !emailRegex.test(email)) {
+    return "Invalid email format";
+  }
+
+  if(password && password.length < 8){
+    return "Password length must be 8 or above";
+  }
+
+  return null;
+}
+
+app.post("/register", async (req, res) => {
+  try {
+    const error = validateUser(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        message: error,
+      });
+    }
+const { name, email, password } = req.body;
+const [rows] = await db.query(
+  `
+SELECT * FROM users 
+WHERE email = ?
+  `,
+  [email]
+);
+
+if(rows.length > 0){
+  return res.status(409).json({
+    message: "Email already exists"
+  })
+}
+const hashedPassword = await bcrypt.hash(password, 10);
+await db.query(
+  ` 
+  INSERT INTO users
+  (name, email, password)
+  VALUES (?, ?, ?)
+  `,[name, email, hashedPassword])
+return res.status(201).json({
+  message : "User registered successfully!"
+});
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+
+})
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
