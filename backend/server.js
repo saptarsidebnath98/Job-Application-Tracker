@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-
+//jobs
 app.get("/jobs", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM jobs");
