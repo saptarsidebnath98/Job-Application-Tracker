@@ -1,19 +1,22 @@
-const VALID_STATUSES = [
-  "Applied",
-  "Interview Scheduled",
-  "Rejected"
-];
+require("dotenv").config();
+
 
 const db = require("./db");
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+const VALID_STATUSES = [
+  "Applied",
+  "Interview Scheduled",
+  "Rejected"
+];
 
 
 (async () => {
@@ -253,9 +256,40 @@ app.post("/login",async(req, res) => {
         message: error,
       });
     }
+
+    const {email, password} = req.body;
+
+    const [rows] = await db.query(`
+      SELECT * FROM users
+      WHERE email = ?
+      `, [email]);
+
+    if(rows.length === 0){
+      return res.status(401).json({
+        message: "Invalid email or password"
+      })
+    }
+
+    const {password : dbPassword} = rows[0];
+
+    const isUser = await bcrypt.compare(password, dbPassword);
+
+    if(!isUser){
+      return res.status(401).json({
+        message: "Invalid email or password"
+      })
+    }
+
+    const {id} = rows[0];
+
+    const secretKey = process.env.JWT_SECRET || 'fallback123';
+
+    const payload = {id};
+
+    const token = jwt.sign(payload, secretKey, { expiresIn: '30d' });
     
     return res.status(200).json({
-      message: "login route working fine"
+      token
     })
       
     } catch (error) {
@@ -263,7 +297,7 @@ app.post("/login",async(req, res) => {
         message: error.message,
       })
     }
-})
+});
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
