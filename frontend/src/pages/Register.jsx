@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { validateEmail, validatePassword } from "../utils/utility";
 
 
@@ -9,6 +9,9 @@ const Register = () => {
     const [registerEmail, setRegisterEmail] = useState("");
     const [registerPassword, setRegisterPassword] = useState("");
     const [error, setError] = useState(null);
+    const [serverError, setServerError] = useState(null);
+
+    const navigate = useNavigate();
 
 
     const handleChange = (e, setFunc) => {
@@ -17,8 +20,9 @@ const Register = () => {
 
 
 
-    const handleRegister = () => {
-
+    const handleRegister = async () => {
+        setError(null);
+        setServerError(null);
         const errorObject = {};
 
         if (!registerName) {
@@ -52,15 +56,45 @@ const Register = () => {
 
 
         if (Object.keys(errorObject).length === 0) {
-            console.log({ name: registerName, email: registerEmail, password: registerPassword });
-            setRegisterName("");
-            setRegisterEmail("");
-            setRegisterPassword("");
-            setError(null);
+
+            try {
+                const response = await fetch("http://localhost:5000/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: registerName, email: registerEmail, password: registerPassword })
+                });
+                if (!response.ok) {
+                    const resErr = await response.json();
+
+                    setServerError(resErr.message);
+                    return
+
+                }
+
+                // eslint-disable-next-line no-unused-vars
+                const data = await response.json();
+          
+                setRegisterName("");
+                setRegisterEmail("");
+                setRegisterPassword("");
+                setError(null);
+                setServerError(null);
+                navigate('/login');
+
+            } catch (err) {
+                console.error(err.message);
+                setServerError("Unable to connect to the server. Please try again.");
+            }
+
+
+
         }
 
         return;
     }
+
     return (
         <div>
             <header>
@@ -83,6 +117,7 @@ const Register = () => {
                             <Link to="/login">Login</Link>
                         </span>
                     </div>
+                    <span className="error_text">{serverError && serverError}</span>
                     <button onClick={handleRegister}>Register</button>
                 </section>
             </main>
