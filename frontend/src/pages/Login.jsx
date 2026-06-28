@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { validateEmail, validatePassword } from "../utils/utility";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
     const [error, setError] = useState(null);
+    const [serverError, setServerError] = useState(null);
 
+    const navigate = useNavigate();
 
     const handleChange = (e, setFunc) => {
         setFunc(e.target.value);
     }
 
-    const handleLogin = () => {
-
+    const handleLogin = async () => {
+        setError(null);
+        setServerError(null);
         const errorObject = {};
 
         if (!loginEmail) {
@@ -39,9 +42,38 @@ const Login = () => {
 
         if (Object.keys(errorObject).length === 0) {
             console.log({ email: loginEmail, password: loginPassword });
-            setLoginEmail("");
-            setLoginPassword("");
-            setError(null);
+            try {
+                const response = await fetch("http://localhost:5000/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email: loginEmail, password: loginPassword })
+                });
+                if (!response.ok) {
+                    const resErr = await response.json();
+
+                    setServerError(resErr.message);
+                    return
+
+                }
+
+                const { token } = await response.json();
+          
+                    localStorage.setItem("accessToken", token);
+                    setLoginEmail("");
+                    setLoginPassword("");
+                    setError(null);
+                    setServerError(null);
+                    navigate('/jobs');
+            
+           
+
+            } catch (err) {
+                console.error(err.message);
+                setServerError("Unable to connect to the server. Please try again.");
+            }
+
         }
 
         return;
@@ -65,6 +97,7 @@ const Login = () => {
                             <Link to="/register">Register</Link>
                         </span>
                     </div>
+                    <span className="error_text">{serverError && serverError}</span>
                     <button onClick={handleLogin}>Login</button>
                 </section>
             </main>
