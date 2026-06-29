@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 
 const Jobs = () => {
     const [jobs, setJobs] = useState([]);
@@ -13,6 +14,8 @@ const Jobs = () => {
     
      const [searchTerms, setSearchTerms] = useState("");
      const [currentFilter, setCurrentFilter] = useState("all");
+
+      const navigate = useNavigate();
     
      const handleFieldChange = (e, setField) => {
         setField(e.target.value);
@@ -25,6 +28,7 @@ const Jobs = () => {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
+                
               },
               body: JSON.stringify({
                 company,
@@ -152,12 +156,23 @@ const Jobs = () => {
       jobsBySearch(jobs, searchTerms),
       currentFilter
     );
+
+    const handleLogout = () => {
+      localStorage.removeItem("accessToken");
+      navigate('/login');
+      
+    }
     
       
       useEffect(() => {
         const getData = async (url) =>  {
           try {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+              }
+            });
             if (!response.ok) {
               throw new Error(`Response status: ${response.status}`);
             }
@@ -183,6 +198,7 @@ const Jobs = () => {
         <div>
       <header>
         <h1>Job Tracker</h1>
+        <button onClick={handleLogout}>Logout</button>
       </header>
       <main>
         <section id="jobs_form">
