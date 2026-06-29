@@ -6,6 +6,7 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
+const authMiddleware = require('./middleware/authMiddleware.js');
 
 const app = express();
 
@@ -33,9 +34,9 @@ app.get("/", (req, res) => {
 });
 
 //jobs
-app.get("/jobs", async (req, res) => {
+app.get("/jobs", authMiddleware, async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM jobs");
+    const [rows] = await db.query(`SELECT * FROM jobs WHERE user_id = ?`, [req.userId]);
     return res.json(rows)
   } catch (error) {
     return res.status(500).json({
@@ -66,7 +67,7 @@ const validateJob = (body) => {
   return null;
 };
 
-app.post("/jobs", async (req, res) => {
+app.post("/jobs", authMiddleware,  async (req, res) => {
   try {
     const error = validateJob(req.body);
 
@@ -86,10 +87,10 @@ const { id, company, position, status } = newJob;
 await db.query(
   `
   INSERT INTO jobs
-  (id, company, position, status)
-  VALUES (?, ?, ?, ?)
+  (id, company, position, status, user_id)
+  VALUES (?, ?, ?, ?, ?)
   `,
-  [id, company, position, status]
+  [id, company, position, status, req.userId]
 );
 return res.status(201).json(newJob);
   } catch (error) {
@@ -99,11 +100,11 @@ return res.status(201).json(newJob);
   }
 });
 
-app.delete("/jobs/:id", async (req, res) => {
+app.delete("/jobs/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [result] = await db.query("DELETE FROM jobs WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM jobs WHERE id = ? AND user_id = ?", [id, req.userId]);
 
     if(result.affectedRows === 0){
       return res.status(404).json({
@@ -121,7 +122,7 @@ app.delete("/jobs/:id", async (req, res) => {
   }
 });
 
-app.put("/jobs/:id", async (req, res) => {
+app.put("/jobs/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -137,7 +138,7 @@ app.put("/jobs/:id", async (req, res) => {
     const [updatedResult] = await db.query(
       `UPDATE jobs 
       SET company = ?, position = ?, status = ?
-      WHERE id = ?;`, [company, position, status, id]);
+      WHERE id = ? AND user_id = ? ;`, [company, position, status, id, req.userId]);
 
     if(updatedResult.affectedRows === 0){
       return res.status(404).json({
@@ -282,7 +283,7 @@ app.post("/login",async(req, res) => {
 
     const {id} = rows[0];
 
-    const secretKey = process.env.JWT_SECRET || 'fallback123';
+    const secretKey = process.env.JWT_SECRET;
 
     const payload = {id};
 
