@@ -27,8 +27,8 @@ const Jobs = () => {
             const response = await fetch("http://localhost:5000/jobs", {
               method: "POST",
               headers: {
-                "Content-Type": "application/json"
-                
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
               },
               body: JSON.stringify({
                 company,
@@ -55,7 +55,10 @@ const Jobs = () => {
       const handleDelete = async(id) => {
         try {
           const response = await fetch(`http://localhost:5000/jobs/${id}`, {
-            method : "DELETE"
+            method : "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+              },
           });
     
           if(!response.ok){
@@ -85,7 +88,8 @@ const Jobs = () => {
             const response = await fetch(`http://localhost:5000/jobs/${editableId}`, {
               method: "PUT",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
               },
               body: JSON.stringify({
                 company,
