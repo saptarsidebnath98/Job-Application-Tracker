@@ -241,7 +241,7 @@ const Jobs = () => {
                   <span>{job.company}</span>
                   <span>{job.position}</span>
                   <span>{job.status}</span>
-                  <div class="jobs_cards_buttons_container">
+                  <div className="jobs_cards_buttons_container">
                     <button onClick={() => handleEdit(job.id)} className='jobs_edit_btn'>Edit</button>
                     <button onClick={() => handleDelete(job.id)} className='jobs_delete_btn'>Delete</button>
                   </div>

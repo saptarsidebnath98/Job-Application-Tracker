@@ -36,7 +36,23 @@ app.get("/", (req, res) => {
 //jobs
 app.get("/jobs", authMiddleware, async (req, res) => {
   try {
-    const [rows] = await db.query(`SELECT * FROM jobs WHERE user_id = ?`, [req.userId]);
+    let sqlCommand = `SELECT * FROM jobs WHERE user_id = ?`
+    const dbQueryArr = [req.userId];
+
+    const validQueryKeys = ["search", "status"];
+    Object.entries(req.query).forEach(([key, value]) => {
+      if (validQueryKeys.includes(key)) {
+        if (key === "search") {
+          sqlCommand += ` AND company LIKE ? `;
+          dbQueryArr.push(`%${value}%`);
+        } else {
+          sqlCommand += ` AND ${key} = ? `;
+          dbQueryArr.push(`${value}`);
+        }
+      }
+    });
+
+    const [rows] = await db.query(sqlCommand , dbQueryArr);
     return res.json(rows)
   } catch (error) {
     return res.status(500).json({
@@ -299,6 +315,8 @@ app.post("/login",async(req, res) => {
       })
     }
 });
+
+
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
