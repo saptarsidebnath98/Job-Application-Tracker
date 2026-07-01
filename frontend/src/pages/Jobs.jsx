@@ -5,6 +5,7 @@ import SearchFilter from '../components/SearchFilter';
 import JobList from '../components/JobList';
 import JobAnalytics from '../components/JobAnalytics';
 import JobForm from '../components/JobForm';
+import { createJob, deleteJob, getJob, updateJob } from '../services/jobService';
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -21,8 +22,6 @@ const Jobs = () => {
 
   const navigate = useNavigate();
 
-  const authHeader = `Bearer ${localStorage.getItem("accessToken")}`;
-
   const handleFieldChange = (e, setField) => {
     setField(e.target.value);
   }
@@ -30,23 +29,11 @@ const Jobs = () => {
   const handleJobFormSubmit = async () => {
     if (company && position && status) {
       try {
-        const response = await fetch("http://localhost:5000/jobs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": authHeader
-          },
-          body: JSON.stringify({
+        const newJob = await createJob({
             company,
             position,
             status
-          })
-        });
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-
-        const newJob = await response.json();
+          });
         setJobs(prevJobs => [...prevJobs, newJob]);
         toast.success("Job added successfully!");
         setCompany("");
@@ -61,19 +48,10 @@ const Jobs = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/jobs/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": authHeader
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-      }
+      const result = await deleteJob(id);
 
       setJobs((prevJobs) => prevJobs.filter((job) => job.id !== id));
-      toast.success("Job deleted successfully!");
+      toast.success(result.message);
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong. Please try again.")
@@ -92,23 +70,11 @@ const Jobs = () => {
   const handleUpdate = async () => {
     if (company && position && status) {
       try {
-        const response = await fetch(`http://localhost:5000/jobs/${editableId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": authHeader
-          },
-          body: JSON.stringify({
+        const updatedJob = await updateJob({
             company,
             position,
             status
-          })
-        });
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-
-        const updatedJob = await response.json();
+          }, editableId);
         setJobs((prevJobs) => {
           return prevJobs.map((job) => {
             if (job.id === editableId) {
@@ -171,17 +137,7 @@ const Jobs = () => {
     const url = query ? `http://localhost:5000/jobs?${query}` : 'http://localhost:5000/jobs';
 
     try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Authorization": authHeader
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await getJob(url);
       setJobs(result);
     } catch (err) {
       console.error(err);
@@ -204,7 +160,7 @@ const Jobs = () => {
 
   return (
     <div>
-      <header>
+      <header id='app_header'>
         <h1>Job Tracker</h1>
         <button onClick={handleLogout}>Logout</button>
       </header>
