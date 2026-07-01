@@ -16,6 +16,8 @@ const Jobs = () => {
      const [currentFilter, setCurrentFilter] = useState("all");
 
       const navigate = useNavigate();
+
+      const authHeader = `Bearer ${localStorage.getItem("accessToken")}`;
     
      const handleFieldChange = (e, setField) => {
         setField(e.target.value);
@@ -28,7 +30,7 @@ const Jobs = () => {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                "Authorization": authHeader
               },
               body: JSON.stringify({
                 company,
@@ -57,7 +59,7 @@ const Jobs = () => {
           const response = await fetch(`http://localhost:5000/jobs/${id}`, {
             method : "DELETE",
             headers: {
-                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                "Authorization": authHeader
               },
           });
     
@@ -89,7 +91,7 @@ const Jobs = () => {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                "Authorization": authHeader
               },
               body: JSON.stringify({
                 company,
@@ -128,11 +130,6 @@ const Jobs = () => {
       }
     
     
-      const jobsBySearch = (jobs, searchTerms) => {
-        const validSearchTerm = searchTerms.toLowerCase().trim();
-        return jobs.filter((job) => job.company.toLowerCase().trim().includes(validSearchTerm))
-      }
-    
       const statusObj = jobs.reduce((overallObject, currentVal) => {
         if(!overallObject[currentVal.status]){
             overallObject[currentVal.status] = 0;
@@ -144,59 +141,64 @@ const Jobs = () => {
       const handleFilterByStatusChange = (e) => {
         setCurrentFilter(e.target.value);
       }
-    
-      const filterJobsByStatus = (jobs, currentFilter) => {
-       
-          if(currentFilter === "all"){
-            return jobs;
-          }else {
-            return jobs.filter((job) => job.status === currentFilter);
-          }
-     
-        
-      }
-    
-      const filteredJobs = filterJobsByStatus(
-      jobsBySearch(jobs, searchTerms),
-      currentFilter
-    );
 
     const handleLogout = () => {
       localStorage.removeItem("accessToken");
       navigate('/login');
       
     }
-    
-      
-      useEffect(() => {
-        const getData = async (url) =>  {
-          try {
-            const response = await fetch(url, {
-              method: "GET",
-              headers: {
-                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
-              }
-            });
-            if (!response.ok) {
-              throw new Error(`Response status: ${response.status}`);
-            }
-    
-            const result = await response.json();
-            setJobs(result);
-          } catch (err) {
-            console.error(err.message);
-            setError(err.message);
-          } finally {
-            setLoading(false);
-          }
+
+  const fetchJobs = async () => {
+    setError(null);
+    setLoading(true);
+    const params = new URLSearchParams();
+
+    if (searchTerms.trim()) {
+      params.append("search", searchTerms);
+    }
+
+    if (currentFilter !== "all") {
+      params.append("status", currentFilter);
+    }
+
+    const query = params.toString();
+
+    const url = query ? `http://localhost:5000/jobs?${query}`: 'http://localhost:5000/jobs';
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": authHeader
         }
+      });
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setJobs(result);
+    } catch (err) {
+      console.error(err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  useEffect(() => {
+      const timer = setTimeout(() => {
+        fetchJobs();
+      }, 500)
+
+      return () => clearTimeout(timer);
     
-        getData('http://localhost:5000/jobs');
-      }, [])
+  }, [searchTerms, currentFilter])
     
     
     
-      if(loading) return <div>Loading...</div>
+
       if(error) return <div>{error}</div>
     return (
         <div>
@@ -234,8 +236,9 @@ const Jobs = () => {
         <section id="jobs_display">
           
           <ul>
-            {filteredJobs.length === 0 && <div>No Jobs Found!</div>}
-            {filteredJobs.map((job) => {
+            {loading && <div>Loading...</div>}
+            {jobs.length === 0 && <div>No Jobs Found!</div>}
+            {jobs.map((job) => {
               return (
                 <li key={job.id}>
                   <span>{job.company}</span>
