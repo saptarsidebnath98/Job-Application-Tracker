@@ -5,7 +5,7 @@ import SearchFilter from '../components/SearchFilter';
 import JobList from '../components/JobList';
 import JobAnalytics from '../components/JobAnalytics';
 import JobForm from '../components/JobForm';
-import { createJob, deleteJob, getJob, updateJob } from '../services/jobService';
+import { createJob, deleteJob, getJobs, updateJob } from '../services/jobService';
 import { MdLogout } from "react-icons/md";
 
 const Jobs = () => {
@@ -27,6 +27,12 @@ const Jobs = () => {
     setField(e.target.value);
   }
 
+  const resetJobForm = () => {
+    setCompany("");
+    setPosition("");
+    setStatus("Applied");
+  }
+
   const handleJobFormSubmit = async () => {
     if (company && position && status) {
       try {
@@ -37,9 +43,7 @@ const Jobs = () => {
           });
         setJobs(prevJobs => [...prevJobs, newJob]);
         toast.success("Job added successfully!");
-        setCompany("");
-        setPosition("");
-        setStatus("Applied");
+        resetJobForm();
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong. Please try again.")
@@ -86,9 +90,7 @@ const Jobs = () => {
           })
         });
         setEditableId(null);
-        setCompany("");
-        setPosition("");
-        setStatus("Applied");
+        resetJobForm();
         toast.success("Job updated successfully!");
       } catch (err) {
         console.error(err);
@@ -101,15 +103,6 @@ const Jobs = () => {
     const value = e.target.value;
     setSearchTerms(value);
   }
-
-
-  const statusObj = jobs.reduce((overallObject, currentVal) => {
-    if (!overallObject[currentVal.status]) {
-      overallObject[currentVal.status] = 0;
-    }
-    overallObject[currentVal.status] += 1;
-    return overallObject;
-  }, {})
 
   const handleFilterByStatusChange = (e) => {
     setCurrentFilter(e.target.value);
@@ -135,10 +128,10 @@ const Jobs = () => {
 
     const query = params.toString();
 
-    const url = query ? `http://localhost:5000/jobs?${query}` : 'http://localhost:5000/jobs';
+    const url = query ? `${import.meta.env.VITE_API_URL}/jobs?${query}` : `${import.meta.env.VITE_API_URL}/jobs`;
 
     try {
-      const result = await getJob(url);
+      const result = await getJobs(url);
       setJobs(result);
     } catch (err) {
       console.error(err);
@@ -174,7 +167,7 @@ const Jobs = () => {
 
         <JobList loading={loading} jobs={jobs} handleEdit={handleEdit} handleDelete={handleDelete}/>
 
-        <JobAnalytics jobs={jobs} statusObj={statusObj}/>
+        <JobAnalytics jobs={jobs}/>
       </main>
       <footer>
 

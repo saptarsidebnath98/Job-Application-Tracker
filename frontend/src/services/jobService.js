@@ -2,7 +2,7 @@ const getAuthHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 });
 
-export const getJob = async (url) => {
+export const getJobs = async (url) => {
     const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -17,7 +17,7 @@ export const getJob = async (url) => {
 }
 
 export const createJob = async (jobData) => {
-  const response = await fetch("http://localhost:5000/jobs", {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/jobs`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export const createJob = async (jobData) => {
 };
 
 export const updateJob = async (updatedData, id) => {
-  const response = await fetch(`http://localhost:5000/jobs/${id}`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/jobs/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export const updateJob = async (updatedData, id) => {
 }; 
 
 export const deleteJob = async (id) => {
-    const response = await fetch(`http://localhost:5000/jobs/${id}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/jobs/${id}`, {
         method: "DELETE",
         headers: {
          ...getAuthHeader(),
