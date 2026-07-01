@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom";
 import { validateEmail, validatePassword } from "../utils/utility";
+import toast from "react-hot-toast";
 
 
 const Register = () => {
@@ -9,7 +10,6 @@ const Register = () => {
     const [registerEmail, setRegisterEmail] = useState("");
     const [registerPassword, setRegisterPassword] = useState("");
     const [error, setError] = useState(null);
-    const [serverError, setServerError] = useState(null);
 
     const navigate = useNavigate();
 
@@ -22,7 +22,6 @@ const Register = () => {
 
     const handleRegister = async () => {
         setError(null);
-        setServerError(null);
         const errorObject = {};
 
         if (!registerName) {
@@ -67,25 +66,23 @@ const Register = () => {
                 });
                 if (!response.ok) {
                     const resErr = await response.json();
-
-                    setServerError(resErr.message);
+                    toast.error(resErr.message);
                     return
 
                 }
 
                 // eslint-disable-next-line no-unused-vars
                 const data = await response.json();
-          
+                toast.success("User registered successfully!");
                 setRegisterName("");
                 setRegisterEmail("");
                 setRegisterPassword("");
                 setError(null);
-                setServerError(null);
                 navigate('/login');
 
+            // eslint-disable-next-line no-unused-vars
             } catch (err) {
-                console.error(err.message);
-                setServerError("Unable to connect to the server. Please try again.");
+                toast.error("Unable to connect to the server. Please try again.");
             }
 
 
@@ -117,7 +114,6 @@ const Register = () => {
                             <Link to="/login">Login</Link>
                         </span>
                     </div>
-                    <span className="error_text">{serverError && serverError}</span>
                     <button onClick={handleRegister}>Register</button>
                 </section>
             </main>

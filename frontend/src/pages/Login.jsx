@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { validateEmail, validatePassword } from "../utils/utility";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Login = () => {
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
     const [error, setError] = useState(null);
-    const [serverError, setServerError] = useState(null);
 
     const navigate = useNavigate();
 
@@ -16,7 +16,7 @@ const Login = () => {
 
     const handleLogin = async () => {
         setError(null);
-        setServerError(null);
+
         const errorObject = {};
 
         if (!loginEmail) {
@@ -53,25 +53,25 @@ const Login = () => {
                 if (!response.ok) {
                     const resErr = await response.json();
 
-                    setServerError(resErr.message);
+                    toast.error(resErr.message);
                     return
 
                 }
 
                 const { token } = await response.json();
-          
-                    localStorage.setItem("accessToken", token);
-                    setLoginEmail("");
-                    setLoginPassword("");
-                    setError(null);
-                    setServerError(null);
-                    navigate('/jobs');
-            
-           
 
+                localStorage.setItem("accessToken", token);
+                toast.success("Welcome Back!")
+                setLoginEmail("");
+                setLoginPassword("");
+                setError(null);
+                navigate('/jobs');
+
+
+
+                // eslint-disable-next-line no-unused-vars
             } catch (err) {
-                console.error(err.message);
-                setServerError("Unable to connect to the server. Please try again.");
+                toast.error("Unable to connect to the server. Please try again.");
             }
 
         }
@@ -97,7 +97,6 @@ const Login = () => {
                             <Link to="/register">Register</Link>
                         </span>
                     </div>
-                    <span className="error_text">{serverError && serverError}</span>
                     <button onClick={handleLogin}>Login</button>
                 </section>
             </main>
