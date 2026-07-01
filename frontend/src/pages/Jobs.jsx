@@ -6,6 +6,7 @@ import JobList from '../components/JobList';
 import JobAnalytics from '../components/JobAnalytics';
 import JobForm from '../components/JobForm';
 import { createJob, deleteJob, getJob, updateJob } from '../services/jobService';
+import { MdLogout } from "react-icons/md";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -155,6 +156,7 @@ const Jobs = () => {
 
     return () => clearTimeout(timer);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerms, currentFilter])
 
 
@@ -162,7 +164,7 @@ const Jobs = () => {
     <div>
       <header id='app_header'>
         <h1>Job Tracker</h1>
-        <button onClick={handleLogout}>Logout</button>
+        <button id='logout' onClick={handleLogout} title='logout'><MdLogout /></button>
       </header>
       <main>
         <JobForm company={company} handleFieldChange={handleFieldChange} setCompany={setCompany} position={position} setPosition={setPosition} status={status} setStatus={setStatus} editableId={editableId} handleUpdate={handleUpdate} handleJobFormSubmit={handleJobFormSubmit}/>

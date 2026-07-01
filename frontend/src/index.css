@@ -1,10 +1,16 @@
 body{
     background-color: #233142;
     color: #e3e3e3;
+    margin: 0%;
+    padding: 0%;
+}
+*{
+    box-sizing: border-box;
 }
 h1 {
     text-align: center;
     color: #f95959;
+    margin: 0%;
 }
 
 /* register page */
@@ -49,6 +55,21 @@ h1 {
 }
 
 /* jobs page */
+#app_header{
+    background-color: #455d7a;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+#logout{
+    background-color: #455d7a;
+    color: #e3e3e3;
+    border: 2px solid #f95959;
+}
+
+
 #jobs_search_filter, #jobs_form {
    padding: 20px;
    font-size: 20px;
