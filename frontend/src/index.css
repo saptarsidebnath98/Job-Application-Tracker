@@ -12,6 +12,9 @@ h1 {
     color: #f95959;
     margin: 0%;
 }
+button{
+    cursor: pointer;
+}
 
 /* register page */
 #register_form, #login_form{
@@ -69,6 +72,19 @@ h1 {
     border: 2px solid #f95959;
 }
 
+.formSubmitBtn {
+    background-color: #f95959;
+    color: #e3e3e3;
+    padding: 5px 10px;
+    border: none;
+}
+
+.formUpdateBtn{
+    background-color: #00b8a9;
+    color: #e3e3e3;
+    padding: 5px 10px;
+    border: none;
+}
 
 #jobs_search_filter, #jobs_form {
    padding: 20px;

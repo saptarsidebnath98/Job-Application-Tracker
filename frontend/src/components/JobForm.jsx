@@ -12,7 +12,7 @@ const JobForm = ({company, handleFieldChange, setCompany, position, setPosition,
             <option value="Interview Scheduled">Interview Scheduled</option>
             <option value="Rejected">Rejected</option>
           </select>
-          {editableId ? <button onClick={handleUpdate}>Update</button> : <button onClick={handleJobFormSubmit}>submit</button>}
+          {editableId ? <button className="formUpdateBtn" onClick={handleUpdate}>Update</button> : <button className="formSubmitBtn" onClick={handleJobFormSubmit}>submit</button>}
         </section>
   )
 }
