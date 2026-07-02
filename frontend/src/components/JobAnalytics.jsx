@@ -1,3 +1,13 @@
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 const JobAnalytics = ({jobs}) => {
 
   const statusObj = jobs.reduce((overallObject, currentVal) => {
@@ -8,7 +18,9 @@ const JobAnalytics = ({jobs}) => {
     return overallObject;
   }, {});
 
+  const statusArr = Object.entries(statusObj).map(([status, count]) => ({status, count}));
 
+  console.log(statusArr);
   return (
     <section id="jobs_analytics">
           <h2>Analytics</h2>
@@ -22,6 +34,22 @@ const JobAnalytics = ({jobs}) => {
               )
             })}
           </div>
+      <div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={statusArr}>
+            <CartesianGrid strokeDasharray="3 3" />
+
+            <XAxis dataKey="status" />
+
+            <YAxis />
+
+            <Tooltip />
+
+            <Bar dataKey="count" fill="#f95959" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      
         </section>
   )
 }
