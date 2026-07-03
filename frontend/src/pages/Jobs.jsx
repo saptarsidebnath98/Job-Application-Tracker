@@ -170,7 +170,7 @@ const Jobs = () => {
         <JobAnalytics jobs={jobs}/>
       </main>
       <footer>
-
+          <span>&copy; Saptarsi Debnath | 2026</span>
       </footer>
     </div>
   )
