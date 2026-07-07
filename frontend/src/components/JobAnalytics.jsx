@@ -35,7 +35,6 @@ const JobAnalytics = ({ jobs }) => {
         {Object.entries(statusObj).map((status, index) => {
           return (
             <div key={index} style={{ border : `2px solid ${STATUS_COLORS[status[0]]}` }} >
-              {console.log(STATUS_COLORS[status[0]])}
               {status[0]} : {status[1]}
             </div>
           )

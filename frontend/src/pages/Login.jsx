@@ -41,7 +41,6 @@ const Login = () => {
 
 
         if (Object.keys(errorObject).length === 0) {
-            console.log({ email: loginEmail, password: loginPassword });
             try {
                 const response = await fetch("http://localhost:5000/login", {
                     method: "POST",
