@@ -12,6 +12,7 @@ const app = express();
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
+    credentials: true,
   }));
 app.use(express.json());
 
@@ -38,24 +39,26 @@ app.get("/", (req, res) => {
 //jobs
 app.get("/jobs", authMiddleware, async (req, res) => {
   try {
-    let sqlCommand = `SELECT * FROM jobs WHERE user_id = ?`
+    let sqlCommand = `SELECT * FROM jobs WHERE user_id = $1`
     const dbQueryArr = [req.userId];
 
     const validQueryKeys = ["search", "status"];
     Object.entries(req.query).forEach(([key, value]) => {
       if (validQueryKeys.includes(key)) {
         if (key === "search") {
-          sqlCommand += ` AND company LIKE ? `;
+          sqlCommand += ` AND company ILIKE $${dbQueryArr.length + 1} `;
           dbQueryArr.push(`%${value}%`);
         } else {
-          sqlCommand += ` AND ${key} = ? `;
-          dbQueryArr.push(`${value}`);
+          sqlCommand += ` AND ${key} =  $${dbQueryArr.length + 1} `;
+          dbQueryArr.push(value);
         }
       }
     });
 
-    const [rows] = await db.query(sqlCommand , dbQueryArr);
-    return res.json(rows)
+    sqlCommand += ` ORDER BY created_at DESC`;
+
+    const result = await db.query(sqlCommand , dbQueryArr);
+    return res.json(result.rows)
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -106,7 +109,7 @@ await db.query(
   `
   INSERT INTO jobs
   (id, company, position, status, user_id)
-  VALUES (?, ?, ?, ?, ?)
+  VALUES ($1, $2, $3, $4, $5)
   `,
   [id, company, position, status, req.userId]
 );
@@ -122,9 +125,9 @@ app.delete("/jobs/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [result] = await db.query("DELETE FROM jobs WHERE id = ? AND user_id = ?", [id, req.userId]);
+    const result = await db.query("DELETE FROM jobs WHERE id = $1 AND user_id = $2", [id, req.userId]);
 
-    if(result.affectedRows === 0){
+    if(result.rowCount === 0){
       return res.status(404).json({
     message: "Job Not Found!"
   })
@@ -153,12 +156,12 @@ app.put("/jobs/:id", authMiddleware, async (req, res) => {
     }
     const { company, position, status } = req.body;
 
-    const [updatedResult] = await db.query(
+    const updatedResult = await db.query(
       `UPDATE jobs 
-      SET company = ?, position = ?, status = ?
-      WHERE id = ? AND user_id = ? ;`, [company, position, status, id, req.userId]);
+      SET company = $1, position = $2, status = $3
+      WHERE id = $4 AND user_id = $5 ;`, [company, position, status, id, req.userId]);
 
-    if(updatedResult.affectedRows === 0){
+    if(updatedResult.rowCount === 0){
       return res.status(404).json({
     message: "Job Not Found!"
     })
@@ -210,15 +213,15 @@ app.post("/register", async (req, res) => {
       });
     }
 const { name, email, password } = req.body;
-const [rows] = await db.query(
+const result = await db.query(
   `
 SELECT * FROM users 
-WHERE email = ?
+WHERE email = $1
   `,
   [email]
 );
 
-if(rows.length > 0){
+if(result.rows.length > 0){
   return res.status(409).json({
     message: "Email already exists"
   })
@@ -228,7 +231,7 @@ await db.query(
   ` 
   INSERT INTO users
   (name, email, password)
-  VALUES (?, ?, ?)
+  VALUES ($1, $2, $3)
   `,[name, email, hashedPassword])
 return res.status(201).json({
   message : "User registered successfully!"
@@ -278,18 +281,18 @@ app.post("/login",async(req, res) => {
 
     const {email, password} = req.body;
 
-    const [rows] = await db.query(`
+    const result = await db.query(`
       SELECT * FROM users
-      WHERE email = ?
+      WHERE email = $1
       `, [email]);
 
-    if(rows.length === 0){
+    if(result.rows.length === 0){
       return res.status(401).json({
         message: "Invalid email or password"
       })
     }
 
-    const {password : dbPassword} = rows[0];
+    const {password : dbPassword} = result.rows[0];
 
     const isUser = await bcrypt.compare(password, dbPassword);
 
@@ -299,7 +302,7 @@ app.post("/login",async(req, res) => {
       })
     }
 
-    const {id} = rows[0];
+    const {id} = result.rows[0];
 
     const secretKey = process.env.JWT_SECRET;
 
