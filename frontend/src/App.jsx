@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import {Toaster} from "react-hot-toast"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -12,6 +12,7 @@ function App() {
     <>
     <Toaster/>
     <Routes>
+       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route
         path="/login"
         element={<Login />}
@@ -26,6 +27,7 @@ function App() {
           <Jobs />
         </ProtectedRoute>}
       />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
     </>
   )
